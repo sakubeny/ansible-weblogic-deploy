@@ -31,5 +31,11 @@ pipeline{
 				}
 			}
 		}
+	        stage('ArchiveArtifact') {
+           		 steps {
+                		archiveArtifacts '**/node-app/universal/*.zip'
+            		}
+        	}
 	}
+
 }
