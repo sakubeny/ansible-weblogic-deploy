@@ -1,41 +1,18 @@
-pipeline{
-	agent any
+node {
+  stage("Hello") {
+    print "Hi!"
 
-	stages{
-		stage('Version'){
-                  steps {
-                    script{
-                        sh '''
-                        chmod +x version.sh
-                        ./version.sh
-                         '''
-                         }
-                  }
-             }
-		stage(build) {
-		steps {
-			checkout scm
-			script {
-				tags = sh(script: "git tag --sort=v:refname | tail -5 ", returnStdout: true).trim()
-                        	properties([
-                             		parameters([
-                                  		choice(
-                                     			choices:"${tags}",
-                                         		name: 'TAG'
-                                         	),
-                                       	])
-                                   ])
-				tagskit = sh(script: "git tag --sort=v:refname | tail -1 ", returnStdout: true).trim()
-				sh "git checkout tags/${tagskit}"
-				echo "new version"
-				}
-			}
-		}
-	        stage('ArchiveArtifact') {
-           		 steps {
-                		archiveArtifacts '**/node-app/universal/*.zip'
-            		}
-        	}
-	}
+    if (params.commit_sha?.trim()) {
+      print "Checking out commit ${commit_sha}"
 
+      scmVars = checkout([
+        $class: 'GitSCM',
+        branches: [[name: params.commit_sha]],
+      ])
+    } else {
+      print "Checking out master"
+
+      scmVars = checkout(scm)
+    }
+  }
 }
